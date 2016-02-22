@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:gpsa:orias:ws.001" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="intermediarySearchServiceDefinition" targetNamespace="urn:gpsa:orias:ws.001" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xs:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified" targetNamespace="urn:gpsa:orias:ws.001" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:simpleType name="CategoryName">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="AGA" />
+          <xs:enumeration value="ALPSI" />
+          <xs:enumeration value="CIF" />
+          <xs:enumeration value="COA" />
+          <xs:enumeration value="COBSP" />
+          <xs:enumeration value="MA" />
+          <xs:enumeration value="MIA" />
+          <xs:enumeration value="MAL" />
+          <xs:enumeration value="MIOBSP" />
+          <xs:enumeration value="MOBSP" />
+          <xs:enumeration value="MOBSPL" />
+          <xs:enumeration value="CIP" />
+          <xs:enumeration value="IFP" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ErrorCodeWS">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="WS_001" />
+          <xs:enumeration value="WS_002" />
+          <xs:enumeration value="WS_003" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="RegistrationStatus">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="INSCRIT" />
+          <xs:enumeration value="SUPPRIME" />
+          <xs:enumeration value="JAMAIS_INSCRIT" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="Siren">
+        <xs:restriction base="xs:string">
+          <xs:maxLength value="9" />
+          <xs:minLength value="9" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="RegistrationNumber">
+        <xs:restriction base="xs:string">
+          <xs:maxLength value="8" />
+          <xs:minLength value="8" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="Denomination">
+        <xs:restriction base="xs:string">
+          <xs:maxLength value="255" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="User">
+        <xs:restriction base="xs:string">
+          <xs:maxLength value="20" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:complexType name="Error">
+        <xs:annotation>
+          <xs:documentation>Error response</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element name="errorCode" type="tns:ErrorCodeWS" />
+          <xs:element name="errorDescription" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="IntermediaryRequest">
+        <xs:annotation>
+          <xs:documentation>Intermediary Request Data</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:choice>
+            <xs:element name="siren" type="tns:Siren" />
+            <xs:element name="registrationNumber" type="tns:RegistrationNumber" />
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="Registration">
+        <xs:annotation>
+          <xs:documentation>Category Data</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element name="categoryName" type="tns:CategoryName" />
+          <xs:element name="status" type="tns:RegistrationStatus" />
+          <xs:element minOccurs="0" name="registrationDate" type="xs:date" />
+          <xs:element minOccurs="0" name="deletionDate" type="xs:date" />
+          <xs:element minOccurs="0" name="collectFunds" type="xs:boolean" />
+          <xs:element minOccurs="0" name="mandators" type="tns:ArrayOfMandator" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="Mandator">
+        <xs:annotation>
+          <xs:documentation>Mandator Data</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element name="siren" type="tns:Siren" />
+          <xs:element minOccurs="0" name="denomination" type="tns:Denomination" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="BaseInformation">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="siren" type="tns:Siren" />
+          <xs:element minOccurs="0" name="registrationNumber" type="tns:RegistrationNumber" />
+          <xs:element minOccurs="0" name="denomination" type="tns:Denomination" />
+          <xs:element name="foundInRegistry" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ArrayOfRegistration">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="registration" type="tns:Registration" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ArrayOfMandator">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="mandator" type="tns:Mandator" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="IntermediaryResponse">
+        <xs:annotation>
+          <xs:documentation>Intermediary Response Data</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element name="informationBase" type="tns:BaseInformation" />
+          <xs:element minOccurs="0" name="registrations" type="tns:ArrayOfRegistration" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ArrayOfIntermediaryRequest">
+        <xs:sequence>
+          <xs:element maxOccurs="1000" name="intermediary" type="tns:IntermediaryRequest" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ArrayOfIntermediaryResponse">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" name="intermediary" type="tns:IntermediaryResponse" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ArrayOfCategoryName">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="categoryName" type="tns:CategoryName" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="IntermediarySearchRequest">
+        <xs:sequence>
+          <xs:element name="user" type="tns:User" />
+          <xs:element name="intermediaries" type="tns:ArrayOfIntermediaryRequest" />
+          <xs:element minOccurs="0" name="categories" type="tns:ArrayOfCategoryName" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="IntermediarySearchResponse">
+        <xs:sequence>
+          <xs:choice>
+            <xs:element name="intermediaries" type="tns:ArrayOfIntermediaryResponse" />
+            <xs:element name="error" type="tns:Error" />
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="intermediarySearchRequest" type="tns:IntermediarySearchRequest" />
+      <xs:element name="intermediarySearchResponse" type="tns:IntermediarySearchResponse" />
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="intermediarySearchRequest">
+    <wsdl:part name="parameters" element="tns:intermediarySearchRequest" />
+  </wsdl:message>
+  <wsdl:message name="intermediarySearchResponse">
+    <wsdl:part name="parameters" element="tns:intermediarySearchResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IntermediarySearchPortType">
+    <wsdl:operation name="intermediarySearch">
+      <wsdl:input name="intermediarySearchRequest" message="tns:intermediarySearchRequest" />
+      <wsdl:output name="intermediarySearchResponse" message="tns:intermediarySearchResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="intermediarySearchSoapBinding" type="tns:IntermediarySearchPortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="intermediarySearch">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="intermediarySearchRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="intermediarySearchResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="intermediarySearchService">
+    <wsdl:port name="intermediarySearchPort" binding="tns:intermediarySearchSoapBinding">
+      <soap:address location="https://ws.orias.fr/service" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
