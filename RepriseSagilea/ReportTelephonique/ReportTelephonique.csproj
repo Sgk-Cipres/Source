@@ -91,6 +91,13 @@
   <ItemGroup>
     <EmbeddedResource Include="ReportModel.rdlc" />
   </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="SQL\fn_GetTiersIdentites.sql" />
+    <Content Include="SQL\fn_SDF_SplitString.sql" />
+    <Content Include="SQL\sp_GetEventData.sql" />
+    <Content Include="SQL\sp_GetEventIdList.sql" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
