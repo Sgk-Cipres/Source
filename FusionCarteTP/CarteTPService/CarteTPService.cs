@@ -24,14 +24,15 @@ namespace CarteTPService
         protected override void OnStart(string[] args)
         {
             //configuration de log4net
-            XmlConfigurator.Configure();
+            //XmlConfigurator.Configure();
+            CarteTPLibrary.CarteManager.Initialize();
 
-            ServiceCfg.Log.Info("Démarrage du service ...");
-            ServiceCfg.CheckConfiguration();
+            CarteTPLibrary.ServiceCfg.Log.Info("Démarrage du service ...");
+            //ServiceCfg.CheckConfiguration();
 
             // création de l'observateur sur le répertoire d'entrée
             // et filtre sur les fichiers de type pdf
-            FileSystemWatcher watcher = new FileSystemWatcher(ServiceCfg.InputFolderPath, "*.pdf");
+            FileSystemWatcher watcher = new FileSystemWatcher(CarteTPLibrary.ServiceCfg.InputFolderPath, "*.pdf");
 
             //Observation des changements sur la date de création, dernière écriture, 
             //renommage de fichiers ou dossiers.
@@ -48,18 +49,18 @@ namespace CarteTPService
 
             // Demarre l'observation.
             watcher.EnableRaisingEvents = true;
-            ServiceCfg.Log.Info("Service Démarré");
+            CarteTPLibrary.ServiceCfg.Log.Info("Service Démarré");
         }
 
         protected override void OnStop()
         {
-            ServiceCfg.Log.Info("Arret du service ...");
+            CarteTPLibrary.ServiceCfg.Log.Info("Arret du service ...");
             if (watcher != null)
             {
                 watcher.EnableRaisingEvents = false;
                 watcher.Dispose();
             }
-            ServiceCfg.Log.Info("Service arrêté");
+            CarteTPLibrary.ServiceCfg.Log.Info("Service arrêté");
         }
 
         void OnChanged(object sender, FileSystemEventArgs e)
@@ -68,40 +69,8 @@ namespace CarteTPService
             //Thread wThread = new Thread(worker.DoWork);
 
             //wThread.Start();
+            CarteTPLibrary.CarteManager.DoCards(e.FullPath);
 
-            //on sépare les pages du pdf d'entrée
-            PdfManager.SplitPdf(e.FullPath);
-
-            //on recherche les fichiers(page) séparés 
-            var files = PdfManager.FindPdfFiles(ServiceCfg.TempFolder);
-            if (files.Any())
-            {
-                //pour chaque page de superposition
-                foreach (var f in files)
-                {
-                    try
-                    {
-                        //on effectue la superposition
-                        if (PdfManager.OverlayPdf(f))
-                        {
-                            //on extrait le texte du fichier
-                            string ptext = PdfManager.GetPdfText(f);
-                            //on sectionne par ligne
-                            string[] splitedtext = ptext.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-
-                            XmlManager.PrepareData(splitedtext);
-                            XmlManager.GenerateXml();
-
-                            File.Delete(f);
-                        }
-                    }
-                    catch (Exception x)
-                    {
-                        ServiceCfg.Log.Error($"Service : Erreur fichier {Path.GetFileName(f)} -", x);
-                        PdfManager.MovePdfError(f);
-                    }
-                }
-            }
         }
     }
 }

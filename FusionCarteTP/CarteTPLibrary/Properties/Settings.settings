@@ -1,0 +1,36 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CarteTPLibrary.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="csBatch" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">user id=batch;password=batch;initial catalog=BATCH;data source=SERVREF01</Value>
+    </Setting>
+    <Setting Name="inputfolder" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">E:\testpdf\source\</Value>
+    </Setting>
+    <Setting Name="outputfolder" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">E:\testpdf\depot\</Value>
+    </Setting>
+    <Setting Name="tempfolder" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">E:\testpdf\temp\</Value>
+    </Setting>
+    <Setting Name="model" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">E:\testpdf\model\C303.pdf</Value>
+    </Setting>
+    <Setting Name="modelpages" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="dataindex" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">pli:26,nni:63,edit:64,barcod:7,barcod2:1</Value>
+    </Setting>
+    <Setting Name="tagscan" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">CODE REGROUPEMENT</Value>
+    </Setting>
+    <Setting Name="overlayx" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">4</Value>
+    </Setting>
+    <Setting Name="overlayy" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">-4</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

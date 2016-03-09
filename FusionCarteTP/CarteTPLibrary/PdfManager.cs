@@ -21,7 +21,7 @@ using Path = System.IO.Path;
 
 
 
-namespace CarteTPService
+namespace CarteTPLibrary
 {
     /// <summary>
     /// on exploite ici 2 librairies pour la gestion de documents PDF "PdfSharp" et "iTextSharp"
@@ -67,66 +67,161 @@ namespace CarteTPService
         }
 
         /// <summary>
-        /// permet de séparer les pages des documents du répertoire source 
-        /// (alias 'inputfolder' dans fichier de configuration)
+        /// 
+        /// </summary>
+        /// <param name="fileOne"></param>
+        /// <param name="fileTwo"></param>
+        /// <param name="newFile"></param>
+        public static void ConcatPdf(string fileOne, string fileTwo, string newFile)
+        {
+            //si le premier fichier en entrée est aussi le fichier de sortie on concatène ce dernier
+            var append = fileOne.Equals(newFile);
+
+            if (append)
+            {
+                //on construit le fichier sortie dans un autre emplacement
+                string cardFolder = Path.Combine(ServiceCfg.OutputFolderPath, @"pages\");
+                newFile = Path.Combine(cardFolder, Path.GetFileName(newFile));
+            }
+            //fusion des pdf
+            using (FileStream stream = new FileStream(newFile, FileMode.Create))
+            {
+                Document pdfDoc = new Document();
+                PdfCopy pdf = new PdfCopy(pdfDoc, stream);
+                pdfDoc.Open();
+                if (File.Exists(fileOne))
+                    pdf.AddDocument(new PdfReader(fileOne));
+                if (File.Exists(fileTwo))
+                    pdf.AddDocument(new PdfReader(fileTwo));
+                
+                if (pdfDoc != null)
+                {
+                    pdfDoc.Close();
+                    if (append)
+                        //on déplace le fichier sortie obtenu à l'emplacement d'origine
+                        File.Move(newFile, fileOne);
+                }
+                    
+            }
+        }
+
+        /// <summary>
+        /// permet de séparer les pages du document source 
         /// vers le répertoire temporaire
+        /// <param name="file">fichier source</param>
         /// </summary>
         public static void SplitPdf(string file)
         {
+            SplitPdf(file, false);
+        }
+
+        /// <summary>
+        /// permet de séparer les pages du document source 
+        /// vers le répertoire temporaire
+        /// <param name="file">fichier source</param>
+        /// <param name="copy">true:copie false:déplace</param>
+        /// </summary>
+        public static void SplitPdf(string file, bool copy)
+        {
             try
             {
-                if (CheckFolder(ServiceCfg.InputFolderPath,false))
+                var srcDoc = file;
+
+                //ouverture du fichier
+                PdfSharpDocument inputDocument = PdfSharpReader.Open(srcDoc, PdfDocumentOpenMode.Import);
+
+                string name = Path.GetFileNameWithoutExtension(file);
+                if(inputDocument.PageCount>1)
                 {
+                    for (int idx = 0; idx < inputDocument.PageCount; idx++)
+                    {
+                        //nouveau document
+                        PdfSharpDocument outputDocument = new PdfSharpDocument();
+                        outputDocument.Version = inputDocument.Version;
+                        outputDocument.Info.Title = $"Page {idx + 1} of {inputDocument.Info.Title}";
+                        outputDocument.Info.Creator = inputDocument.Info.Creator;
 
-                    //recherche du fichier dans le repertoire donné
-                    //var files = Directory.EnumerateFiles(ServiceCfg.InputFolderPath, "*.pdf");
-                    //var files = FindPdfFiles(ServiceCfg.InputFolderPath);
-                    string p = file;
-                    //if (files.Any())
-                    //{
-                        //foreach (string p in files)
-                        //{
-                            var srcDoc = Path.Combine(ServiceCfg.InputFolderPath, Path.GetFileName(p));
-                            //var cpyDoc = Path.Combine(finalfolder, Path.GetFileName(p));
-                            //File.Copy(srcDoc, cpyDoc, true);
-
-                            // Open the file
-                            PdfSharpDocument inputDocument = PdfSharpReader.Open(srcDoc, PdfDocumentOpenMode.Import);
-
-                            string name = Path.GetFileNameWithoutExtension(p);
-                            for (int idx = 0; idx < inputDocument.PageCount; idx++)
-                            {
-                                // Create new document
-                                PdfSharpDocument outputDocument = new PdfSharpDocument();
-                                outputDocument.Version = inputDocument.Version;
-                                outputDocument.Info.Title = $"Page {idx + 1} of {inputDocument.Info.Title}";
-                                outputDocument.Info.Creator = inputDocument.Info.Creator;
-
-                                // Add the page and save it
-                                outputDocument.AddPage(inputDocument.Pages[idx]);
-                                CheckFolder(ServiceCfg.TempFolder, true);
-                                outputDocument.Save(Path.Combine(ServiceCfg.TempFolder, $"{name}__p{idx + 1}.pdf"));
-                                outputDocument.Close();
-                            }
-                            if (CheckFolder(ServiceCfg.OutputFolderPath,false))
-                            {
-                                var pathbckup = Path.Combine(ServiceCfg.OutputFolderPath, "original\\");
-                                if (CheckFolder(pathbckup, true))
-                                {
-                                    File.Move(srcDoc, Path.Combine(pathbckup, Path.GetFileName(p)));
-                                }
-                            }
-                        //}
-                    //}
+                        //ajout de la page et sauvegarde
+                        outputDocument.AddPage(inputDocument.Pages[idx]);
+                        CheckFolder(ServiceCfg.TempFolder, true);
+                        outputDocument.Save(Path.Combine(ServiceCfg.TempFolder, $"{name}__p{idx + 1}.pdf"));
+                        outputDocument.Close();
+                    }
                 }
                 else
                 {
-                    ServiceCfg.Log.Error($"PdfManager.SplitPdf : Pas de répertoire d'entrée {ServiceCfg.InputFolderPath}");
+                    //nouveau document
+                    PdfSharpDocument outputDocument = new PdfSharpDocument();
+                    outputDocument.Version = inputDocument.Version;
+                    outputDocument.Info.Title = inputDocument.Info.Title;
+                    outputDocument.Info.Creator = inputDocument.Info.Creator;
+
+                    //ajout de la page et sauvegarde
+                    outputDocument.AddPage(inputDocument.Pages[0]);
+                    CheckFolder(ServiceCfg.TempFolder, true);
+                    outputDocument.Save(Path.Combine(ServiceCfg.TempFolder, $"{name}.pdf"));
+                    outputDocument.Close();
+                }
+
+                if (CheckFolder(ServiceCfg.OutputFolderPath,false))
+                {
+                    var pathbckup = Path.Combine(ServiceCfg.OutputFolderPath, "original\\");
+                    var filebck = Path.Combine(pathbckup, Path.GetFileName(file));
+                    if (CheckFolder(pathbckup, true))
+                    {
+                        if(File.Exists(filebck))
+                        {
+                            filebck = Path.Combine(pathbckup, $"{Path.GetFileNameWithoutExtension(file)}_[ALT-{DateTime.Now.ToString("yyyyMMddHHmmss")}]{Path.GetExtension(file)}");
+                        }
+                        if(copy)
+                            File.Copy(srcDoc, filebck);
+                        else
+                            File.Move(srcDoc, filebck);
+                        //on garde le chemin du fichier d'origine
+                        DataManager.SetDicoValue(LogTableParam.Source, filebck);
+                    }
                 }
             }
             catch (Exception e)
             {
-                ServiceCfg.Log.Error("PdfManager.SplitPdf : ", e);
+                ServiceCfg.Log.Error($"PdfManager.SplitPdf : {file}{Environment.NewLine}", e);
+                throw new Exception($"PdfManager.SplitPdf : {file}{Environment.NewLine}", e);
+            }
+        }
+
+        /// <summary>
+        /// réorganise les pages d'un document pdf selon la liste d'indices de pages
+        /// <param name="inputFile">fichier à ordonner</param>
+        /// <param name="indexList">pages dans l'ordre voulu</param>
+        /// </summary>
+        public static void DoReorder(string inputFile, int[] indexList)
+        {
+            //var inputFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Test.pdf");
+            //var output = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Output.pdf");
+            var output = Path.Combine(ServiceCfg.OutputFolderPath, Path.GetFileName(inputFile));
+
+            //Bind a reader to our input file
+            var reader = new PdfReader(inputFile);
+
+            //Create our output file, nothing special here
+            using (FileStream fs = new FileStream(output, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                using (Document doc = new Document(reader.GetPageSizeWithRotation(1)))
+                {
+                    //Use a PdfCopy to duplicate each page
+                    using (PdfCopy copy = new PdfCopy(doc, fs))
+                    {
+                        doc.Open();
+                        copy.SetLinearPageMode();
+                        for (int i = 1; i <= reader.NumberOfPages; i++)
+                        {
+                            copy.AddPage(copy.GetImportedPage(reader, i));
+                        }
+                        //Reorder pages
+                        copy.ReorderPages(indexList);
+                        doc.Close();
+                    }
+                }
             }
         }
 
@@ -141,10 +236,17 @@ namespace CarteTPService
             var isOk = true;
             try
             {
+                //on obtien uniquement le nom du fichier
+                string filename = Path.GetFileName(overlayfile);
+                //on sauvegarde le chemin du fichier temporaire
+                DataManager.SetDicoValue(LogTableParam.Intermediaire, overlayfile);
+                
                 string inputFile = ServiceCfg.PdfModel;
-                string overlayFile = overlayfile;
-                string outFile = Path.Combine(ServiceCfg.OutputFolderPath,"CTP_" + Path.GetFileName(overlayFile));
-
+                string cardFolder = Path.Combine(ServiceCfg.OutputFolderPath, @"pages\");
+                if (!PdfManager.CheckFolder(cardFolder,true))
+                    return false;
+                string outFile = Path.Combine(cardFolder,"CTP_" + filename);
+                
                 //Creation du reader et du document pour lire le document PDF original
                 PdfReader reader = new PdfReader(inputFile);
                 Document inputDoc = new Document(reader.GetPageSizeWithRotation(1));
@@ -159,7 +261,7 @@ namespace CarteTPService
                     PdfContentByte cb1 = outputWriter.DirectContent;
 
                     //Obtien le document PDF à utiliser comme superposition
-                    PdfReader overlayReader = new PdfReader(overlayFile);
+                    PdfReader overlayReader = new PdfReader(overlayfile);
                     PdfImportedPage overLay = outputWriter.GetImportedPage(overlayReader, 1);
 
                     //Obtention de la rotation de page de superposition
@@ -221,11 +323,14 @@ namespace CarteTPService
                 }
                 
                 reader.Close();
+                //tout est traité dans cette phase on garde le fichier obtenu
+                DataManager.SetDicoValue(LogTableParam.Intermediaire, _lastPdf);
             }
             catch (Exception e)
             {
                 _lastPdf = string.Empty;
                 ServiceCfg.Log.Error("PdfManager.OverlayPdf : ", e);
+                DataManager.SetLogTable(-1, "PdfManager.OverlayPdf : " + e.Message);
                 isOk = false;
             }
             return isOk;
@@ -305,8 +410,9 @@ namespace CarteTPService
         /// <summary>
         /// déplace un pdf en erreur dans un répertoire dédié
         /// </summary>
-        /// <param name="file"></param>
-        public static void MovePdfError(string file)
+        /// <param name="file">fichier à déplacer</param>
+        /// <returns>nouvel emplacement</returns>
+        public static string MovePdfError(string file)
         {
             if (CheckFolder(ServiceCfg.OutputFolderPath, false))
             {
@@ -316,9 +422,11 @@ namespace CarteTPService
                     if (File.Exists(file))
                     {
                         File.Move(file, Path.Combine(pathbckup, Path.GetFileName(file)));
+                        return Path.Combine(pathbckup, Path.GetFileName(file));
                     }
                 }
             }
+            return file;
         }
 
         /// <summary>

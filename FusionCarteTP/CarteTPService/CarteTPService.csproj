@@ -48,16 +48,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="itextsharp, Version=5.5.8.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
-      <HintPath>..\packages\iTextSharp.5.5.8\lib\itextsharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+    <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PdfSharp-WPF">
-      <HintPath>..\..\PDFsharp\code\PdfSharp\bin\Debug\PdfSharp-WPF.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -79,8 +71,6 @@
     <Compile Include="CarteTPService.Designer.cs">
       <DependentUpon>CarteTPService.cs</DependentUpon>
     </Compile>
-    <Compile Include="NumeroINSEE.cs" />
-    <Compile Include="PdfManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
@@ -89,9 +79,6 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceCfg.cs" />
-    <Compile Include="Worker.cs" />
-    <Compile Include="XmlManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -118,6 +105,18 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CarteTPLibrary\CarteTPLibrary.csproj">
+      <Project>{abe5694f-d563-42a8-971c-61dc802844e3}</Project>
+      <Name>CarteTPLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SQL\fct_SDF_SplitString.sql" />
+    <Content Include="SQL\sp_GetTierDataByInsee.sql" />
+    <Content Include="SQL\sp_SetCarteTPLog.sql" />
+    <Content Include="SQL\tbl_CartesLog.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

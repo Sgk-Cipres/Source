@@ -31,7 +31,7 @@ namespace CarteTPService
                             //on sectionne par ligne
                             string[] splitedtext = ptext.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
 
-                            XmlManager.PrepareData(splitedtext);
+                            DataManager.PrepareData(splitedtext);
                             XmlManager.GenerateXml();
 
                             File.Delete(f);
