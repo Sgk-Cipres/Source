@@ -112,7 +112,7 @@ namespace CarteTPLibrary
         /// </summary>
         public static void SplitPdf(string file)
         {
-            SplitPdf(file, false);
+            SplitPdf(file, true);
         }
 
         /// <summary>
