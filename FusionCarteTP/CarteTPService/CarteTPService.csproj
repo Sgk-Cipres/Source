@@ -115,8 +115,10 @@
   <ItemGroup>
     <Content Include="SQL\fct_SDF_SplitString.sql" />
     <Content Include="SQL\sp_GetTierDataByInsee.sql" />
+    <Content Include="SQL\sp_ListerPdfLot.sql" />
     <Content Include="SQL\sp_SetCarteTPLog.sql" />
     <Content Include="SQL\tbl_CartesLog.sql" />
+    <Content Include="SQL\vw_V_Liste_Lot_Cartes_TP.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
