@@ -20,7 +20,6 @@ using iTextSharpPath = iTextSharp.text.pdf.parser.Path;
 using Path = System.IO.Path;
 
 
-
 namespace CarteTPLibrary
 {
     /// <summary>

@@ -238,7 +238,13 @@ namespace CarteTPLibrary
                 {
                     foreach(var k in dico.Keys)
                     {
-                        command.Parameters.Add(new SqlParameter(k, dico[k]));
+                        if(k.Equals(LogTableParam.Edition) && !string.IsNullOrEmpty(dico[k]))
+                        {
+                            var val = DateTime.Parse(dico[k]);
+                            command.Parameters.Add(new SqlParameter(k, val));
+                        }
+                        else
+                            command.Parameters.Add(new SqlParameter(k, dico[k]));
                     }
                 }
 
@@ -297,6 +303,7 @@ namespace CarteTPLibrary
                             _nir13 = reader["nni"].ToString();
                             _cle = NumeroINSEE.CalculerCleINSEE(_nir13).ToString("D2");
                             _dateEdition = reader["date_edition"].ToString();
+                            SetDicoValue(LogTableParam.Edition, DateEdition);
                             SetDicoValue(LogTableParam.Enveloppe, Enveloppe);
                         }
                         else

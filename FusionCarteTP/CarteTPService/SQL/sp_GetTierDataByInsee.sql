@@ -1,20 +1,17 @@
 USE [Batch]
 GO
-
-/****** Object:  StoredProcedure [dbo].[GetTierDataByInsee]    Script Date: 04/03/2016 16:26:43 ******/
+/****** Object:  StoredProcedure [dbo].[GetTierDataByInsee]    Script Date: 09/03/2016 19:12:28 ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
-
 
 -- =============================================
 -- Author:		<Author,,Name>
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE [dbo].[GetTierDataByInsee]
+ALTER PROCEDURE [dbo].[GetTierDataByInsee]
 	-- Add the parameters for the stored procedure here
 	@insee nvarchar(13)
 AS
@@ -24,14 +21,15 @@ BEGIN
 	SET NOCOUNT ON;
 
     -- Insert statements for procedure here
-	SELECT 
+
+	SELECT DISTINCT
 		1 as wkf
 		,1 as reprise
 		,'W99' as thereflow
 		,'Envoi carte Tiers Payant' as type_doc
 		,'ASSURE' as type_tiers
-		,TiersId as id_tiers
-		,Nom + ' ' + Prenom AS identite
+		,l.TiersId as id_tiers
+		,l.Nom + ' ' + l.Prenom AS identite
 		,'Courrier' as media
 		,'S' as sens
 		,'Traité' as statu_lib
@@ -46,8 +44,9 @@ BEGIN
 		, 0 as CertConjt
 		, 0 as CertScol
 		, 0 as Tele
-	FROM ListeAssureBeneficiaires
-	WHERE NumeroSecu = @insee;
+	FROM CarteTPView c
+	INNER JOIN ListeAssuresBeneficiares l on l.TiersId = c.TiersId
+	WHERE c.NNI =  @insee;
 END
 
 

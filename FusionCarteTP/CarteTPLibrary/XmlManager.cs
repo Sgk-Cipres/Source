@@ -59,7 +59,6 @@ namespace CarteTPLibrary
                 doc.AppendChild(tagDoc);
 
                 //emplacement et nom de fichier à créer
- 
                 string filename = $"{data["thereflow"]}_{data["type_tiers"]}_{Path.GetFileNameWithoutExtension(env)}.xml";
                 string xml = Path.Combine(ServiceCfg.OutputFolderPath, DateTime.Parse(DataManager.DateEdition).ToString("yyyyMMdd"), filename);
                 if (File.Exists(xml))
@@ -74,6 +73,5 @@ namespace CarteTPLibrary
                 DataManager.SetLogTable(-1, "XmlManager.GenerateXML : " + ex.Message);
             }
         }
-
     }
 }
