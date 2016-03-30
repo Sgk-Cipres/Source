@@ -13,6 +13,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupCarteTPService", "Setu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarteTPLibrary", "CarteTPLibrary\CarteTPLibrary.csproj", "{ABE5694F-D563-42A8-971C-61DC802844E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarteTPExtranet", "CarteTPExtranet\CarteTPExtranet.csproj", "{29DECF16-C246-4978-A95D-9F60030478E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{ABE5694F-D563-42A8-971C-61DC802844E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABE5694F-D563-42A8-971C-61DC802844E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABE5694F-D563-42A8-971C-61DC802844E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29DECF16-C246-4978-A95D-9F60030478E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29DECF16-C246-4978-A95D-9F60030478E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29DECF16-C246-4978-A95D-9F60030478E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29DECF16-C246-4978-A95D-9F60030478E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

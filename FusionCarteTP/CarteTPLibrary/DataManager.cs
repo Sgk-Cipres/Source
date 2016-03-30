@@ -65,6 +65,7 @@ namespace CarteTPLibrary
                     //on ne fait rien sinon on reactualise les infos
                     if (_hasChanged)
                     {
+                        InitDico();
                         _refPli = reference;
                         _nir13 = string.Empty;
                         _cle = string.Empty;

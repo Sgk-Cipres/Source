@@ -14,22 +14,27 @@ namespace iTextSharpFusionDoc
     {
         static void Main(string[] args)
         {
-            //string inputFile;
-            //string overlayFile;
-            //string outFile;
+            string inputFile;
+            string overlayFile;
+            string outFile;
             //Set_Files(args, out inputFile, out overlayFile, out outFile);
             //DoFusion(inputFile,overlayFile,outFile);
 
-            string path = ConfigurationManager.AppSettings["input"];
-            var files = Directory.EnumerateFiles(path, "*.pdf");
+            //string path = ConfigurationManager.AppSettings["input"];
+            //var files = Directory.EnumerateFiles(path, "*.pdf");
 
-            if (files.Any())
-            {
-                foreach (var f in files)
-                {
-                    DoReorder(f);
-                }
-            }
+            //if (files.Any())
+            //{
+            //    foreach (var f in files)
+            //    {
+            //        DoReorder(f);
+            //    }
+            //}
+
+            inputFile = @"E:\testpdf\model\C303.pdf";
+            outFile = @"E:\testpdf\depot\test_text.pdf";
+
+            DoFusionText(inputFile, @"E:\testpdf\depot\test\1.txt", outFile);
         }
 
         /// <summary>
@@ -137,6 +142,91 @@ namespace iTextSharpFusionDoc
                 inputDoc.Close();
                 //Close the reader for the overlay file
                 overlayReader.Close();
+            }
+            reader.Close();
+        }
+
+        private static void DoFusionText(string inputFile, string overlayFile, string outFile)
+        {
+
+            //StreamReader textFile = new StreamReader(@"E:\testpdf\depot\texte\extrait.txt", Encoding.UTF8);
+            //string text = textFile.ReadToEnd();
+
+            //textFile.Close();
+
+            //Create the reader and document to read the origanl PDF document
+            PdfReader reader = new PdfReader(inputFile);
+            Document inputDoc = new Document(reader.GetPageSizeWithRotation(1));
+
+            using (FileStream fs = new FileStream(outFile, FileMode.Create))
+            {
+                //Create the PDF Writer to create the new PDF Document
+                PdfWriter outputWriter = PdfWriter.GetInstance(inputDoc, fs);
+                inputDoc.Open();
+                //Create the Content Byte to stamp to the wrtiter
+                PdfContentByte cb1 = outputWriter.DirectContent;
+
+                //Get the PDF document to use as overlay
+                PdfReader overlayReader = new PdfReader(overlayFile);
+
+                PdfImportedPage overLay = outputWriter.GetImportedPage(overlayReader, 1);
+
+                //Get the overlay page rotation
+                int overlayRotation = overlayReader.GetPageRotation(1);
+
+
+                int n = reader.NumberOfPages;
+
+                int i = 1;
+                while (i <= n)
+                {
+                    //Make sure the new page's page size macthes the original document
+                    inputDoc.SetPageSize(reader.GetPageSizeWithRotation(i));
+                    inputDoc.NewPage();
+
+
+                    PdfImportedPage page = outputWriter.GetImportedPage(reader, i);
+                    int rotation = reader.GetPageRotation(i);
+
+                    //Insert the original PDF page with correct rotation
+                    if (rotation == 90 || rotation == 270)
+                    {
+                        cb1.AddTemplate(page, 0, -1f, 1f, 0, 0,
+                            reader.GetPageSizeWithRotation(i).Height);
+                    }
+                    else
+                    {
+                        //cb1.AddTemplate(page, 1f, 0, 0, 1f, 0, 0);
+                        cb1.AddTemplate(page, 0, 0, true);
+                    }
+
+                    //Insert the overlay with correct rotation
+                    if (overlayRotation == 90 || overlayRotation == 270)
+                    {
+                        cb1.AddTemplate(overLay, 0, -1f, 1f, 0, 0,
+                            reader.GetPageSizeWithRotation(i).Height);
+                    }
+                    else
+                    {
+                        cb1.AddTemplate(overLay, 1f, 0, 0, 1f, 0, 0);
+                        //cb1.AddTemplate(overLay, -2, 5, true);
+
+                        //cb1.BeginText();
+                        //var font = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false);
+                        //cb1.SetFontAndSize(font, 12);
+                        //cb1.ShowText(text);
+                        //cb1.EndText();
+                    }
+
+                    
+
+                    //Increment the page
+                    i++;
+                }
+                //Close the input file
+                inputDoc.Close();
+                //Close the reader for the overlay file
+                //overlayReader.Close();
             }
             reader.Close();
         }

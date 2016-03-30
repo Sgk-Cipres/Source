@@ -86,19 +86,38 @@ namespace CarteTPLibrary
             using (FileStream stream = new FileStream(newFile, FileMode.Create))
             {
                 Document pdfDoc = new Document();
+                PdfReader reader;
                 PdfCopy pdf = new PdfCopy(pdfDoc, stream);
                 pdfDoc.Open();
+
                 if (File.Exists(fileOne))
-                    pdf.AddDocument(new PdfReader(fileOne));
+                {
+                    reader = new PdfReader(fileOne);
+                    pdf.AddDocument(reader);
+                    reader.Close();
+                }
+
                 if (File.Exists(fileTwo))
-                    pdf.AddDocument(new PdfReader(fileTwo));
-                
+                {
+                    reader = new PdfReader(fileTwo);
+                    pdf.AddDocument(reader);
+                    reader.Close();
+                }
+
                 if (pdfDoc != null)
                 {
+                    pdf.Close();
                     pdfDoc.Close();
                     if (append)
+                    {
+                        if (File.Exists(fileOne))
+                        {
+                            File.Delete(fileOne);
+                        }
                         //on déplace le fichier sortie obtenu à l'emplacement d'origine
                         File.Move(newFile, fileOne);
+                    }
+                        
                 }
                     
             }
@@ -142,8 +161,9 @@ namespace CarteTPLibrary
 
                         //ajout de la page et sauvegarde
                         outputDocument.AddPage(inputDocument.Pages[idx]);
-                        CheckFolder(ServiceCfg.TempFolder, true);
-                        outputDocument.Save(Path.Combine(ServiceCfg.TempFolder, $"{name}__p{idx + 1}.pdf"));
+                        var temp = Path.Combine(ServiceCfg.TempFolder, Path.GetFileNameWithoutExtension(file));
+                        CheckFolder(temp, true);
+                        outputDocument.Save(Path.Combine(temp, $"{name}__p{idx + 1}.pdf"));
                         outputDocument.Close();
                     }
                 }
@@ -157,8 +177,9 @@ namespace CarteTPLibrary
 
                     //ajout de la page et sauvegarde
                     outputDocument.AddPage(inputDocument.Pages[0]);
-                    CheckFolder(ServiceCfg.TempFolder, true);
-                    outputDocument.Save(Path.Combine(ServiceCfg.TempFolder, $"{name}.pdf"));
+                    var temp = Path.Combine(ServiceCfg.TempFolder, Path.GetFileNameWithoutExtension(file));
+                    CheckFolder(temp, true);
+                    outputDocument.Save(Path.Combine(temp, $"{name}.pdf"));
                     outputDocument.Close();
                 }
 
@@ -224,6 +245,117 @@ namespace CarteTPLibrary
             }
         }
 
+
+        /// <summary>
+        /// recouvre le fichier modèle avec le contenu des fichiers d'entrée 
+        /// (préalablement séparés en 1 page par fichier)
+        /// </summary>
+        /// <param name="overlaystream">stream de la page ayant les données à superposer</param>
+        /// <param name="filename">nomenclature du fichier sortie</param>
+        /// <returns>booléen pour indiquer si l'opération a réussit ou pas</returns>
+        public static bool OverlayPdf(Stream overlaystream, string filename)
+        {
+            var isOk = true;
+            try
+            {
+                isOk = Overlay(overlaystream, filename);
+
+                ////string inputFile = ServiceCfg.PdfModel;
+                ////string cardFolder = Path.Combine(ServiceCfg.OutputFolderPath, @"pages\");
+                ////if (!PdfManager.CheckFolder(cardFolder, true))
+                ////    return false;
+                ////string outFile = Path.Combine(cardFolder, "CTP_" + filename);
+
+                //////Creation du reader et du document pour lire le document PDF original
+                ////PdfReader reader = new PdfReader(inputFile);
+                ////Document inputDoc = new Document(reader.GetPageSizeWithRotation(1));
+
+                ////using (FileStream fs = new FileStream(outFile, FileMode.Create))
+                ////{
+
+                ////    //Creation du PDF Writer pour créer le nouveau Document PDF
+                ////    PdfWriter outputWriter = PdfWriter.GetInstance(inputDoc, fs);
+                ////    inputDoc.Open();
+                ////    //Creation du Content Byte pour tamponner le PDF writer
+                ////    PdfContentByte cb1 = outputWriter.DirectContent;
+
+                ////    //Obtien le document PDF à utiliser comme superposition
+                ////    PdfReader overlayReader = new PdfReader(overlaystream);
+                ////    PdfImportedPage overLay = outputWriter.GetImportedPage(overlayReader, 1);
+
+                ////    //Obtention de la rotation de page de superposition
+                ////    int overlayRotation = overlayReader.GetPageRotation(1);
+
+                ////    int n = reader.NumberOfPages;
+
+                ////    //liste des numéros de pages à marquer dans le modèle
+                ////    List<int> pagesList = GetModelPages2Overlay(n);
+
+                ////    int i = 1;
+                ////    while (i <= n)
+                ////    {
+                ////        //S'assurer que la taille de la nouvelle page correspond à celle du document d'origine
+                ////        inputDoc.SetPageSize(reader.GetPageSizeWithRotation(i));
+                ////        inputDoc.NewPage();
+
+                ////        PdfImportedPage page = outputWriter.GetImportedPage(reader, i);
+
+                ////        int rotation = reader.GetPageRotation(i);
+
+                ////        //Ajout de la page PDF originale avec la bonne rotation
+                ////        if (rotation == 90 || rotation == 270)
+                ////        {
+                ////            cb1.AddTemplate(page, 0, -1f, 1f, 0, 0,
+                ////                reader.GetPageSizeWithRotation(i).Height);
+                ////        }
+                ////        else
+                ////        {
+                ////            //cb1.AddTemplate(page, 1f, 0, 0, 1f, 0, 0);
+                ////            cb1.AddTemplate(page, 0, 0, true);
+                ////        }
+
+                ////        //si la page en cours est à marquer
+                ////        if (pagesList.Contains(i))
+                ////        {
+                ////            //Ajout de la superposition avec la bonne rotation
+                ////            if (overlayRotation == 90 || overlayRotation == 270)
+                ////            {
+                ////                cb1.AddTemplate(overLay, 0, -1f, 1f, 0, 0,
+                ////                    reader.GetPageSizeWithRotation(i).Height);
+                ////            }
+                ////            else
+                ////            {
+                ////                //cb1.AddTemplate(overLay, 1f, 0, 0, 1f, 0, 0);
+                ////                cb1.AddTemplate(overLay, float.Parse(ServiceCfg.OverlayX.ToString()), float.Parse(ServiceCfg.OverlayY.ToString()), true);
+                ////            }
+
+                ////        }
+                ////        //Increment de page
+                ////        i++;
+                ////    }
+                ////    //Fermeture du fichier d'entrée
+                ////    inputDoc.Close();
+                ////    //on garde le fichier de sortie
+                ////    _lastPdf = outFile;
+                ////    //Fermeture du reader pour le fichier de superposition
+                ////    overlayReader.Close();
+                ////}
+
+                ////reader.Close();
+                //tout est traité dans cette phase on garde le fichier obtenu
+                DataManager.SetDicoValue(LogTableParam.Intermediaire, _lastPdf);
+            }
+            catch (Exception e)
+            {
+                _lastPdf = string.Empty;
+                ServiceCfg.Log.Error("PdfManager.OverlayPdf : ", e);
+                DataManager.SetLogTable(-1, "PdfManager.OverlayPdf : " + e.Message);
+                isOk = false;
+            }
+            return isOk;
+        }
+
+
         /// <summary>
         /// recouvre le fichier modèle avec le contenu des fichiers d'entrée 
         /// (préalablement séparés en 1 page par fichier)
@@ -239,89 +371,90 @@ namespace CarteTPLibrary
                 string filename = Path.GetFileName(overlayfile);
                 //on sauvegarde le chemin du fichier temporaire
                 DataManager.SetDicoValue(LogTableParam.Intermediaire, overlayfile);
-                
-                string inputFile = ServiceCfg.PdfModel;
-                string cardFolder = Path.Combine(ServiceCfg.OutputFolderPath, @"pages\");
-                if (!PdfManager.CheckFolder(cardFolder,true))
-                    return false;
-                string outFile = Path.Combine(cardFolder,"CTP_" + filename);
-                
-                //Creation du reader et du document pour lire le document PDF original
-                PdfReader reader = new PdfReader(inputFile);
-                Document inputDoc = new Document(reader.GetPageSizeWithRotation(1));
 
-                using (FileStream fs = new FileStream(outFile, FileMode.Create))
-                {
+                isOk = Overlay(overlayfile, filename);
+                ////string inputFile = ServiceCfg.PdfModel;
+                ////string cardFolder = Path.Combine(ServiceCfg.OutputFolderPath, @"pages\");
+                ////if (!PdfManager.CheckFolder(cardFolder,true))
+                ////    return false;
+                ////string outFile = Path.Combine(cardFolder,"CTP_" + filename);
+                
+                //////Creation du reader et du document pour lire le document PDF original
+                ////PdfReader reader = new PdfReader(inputFile);
+                ////Document inputDoc = new Document(reader.GetPageSizeWithRotation(1));
+
+                ////using (FileStream fs = new FileStream(outFile, FileMode.Create))
+                ////{
                
-                    //Creation du PDF Writer pour créer le nouveau Document PDF
-                    PdfWriter outputWriter = PdfWriter.GetInstance(inputDoc, fs);
-                    inputDoc.Open();
-                    //Creation du Content Byte pour tamponner le PDF writer
-                    PdfContentByte cb1 = outputWriter.DirectContent;
+                ////    //Creation du PDF Writer pour créer le nouveau Document PDF
+                ////    PdfWriter outputWriter = PdfWriter.GetInstance(inputDoc, fs);
+                ////    inputDoc.Open();
+                ////    //Creation du Content Byte pour tamponner le PDF writer
+                ////    PdfContentByte cb1 = outputWriter.DirectContent;
 
-                    //Obtien le document PDF à utiliser comme superposition
-                    PdfReader overlayReader = new PdfReader(overlayfile);
-                    PdfImportedPage overLay = outputWriter.GetImportedPage(overlayReader, 1);
+                ////    //Obtien le document PDF à utiliser comme superposition
+                ////    PdfReader overlayReader = new PdfReader(overlayfile);
+                ////    PdfImportedPage overLay = outputWriter.GetImportedPage(overlayReader, 1);
 
-                    //Obtention de la rotation de page de superposition
-                    int overlayRotation = overlayReader.GetPageRotation(1);
+                ////    //Obtention de la rotation de page de superposition
+                ////    int overlayRotation = overlayReader.GetPageRotation(1);
 
-                    int n = reader.NumberOfPages;
+                ////    int n = reader.NumberOfPages;
 
-                    //liste des numéros de pages à marquer dans le modèle
-                    List<int> pagesList = GetModelPages2Overlay(n);
+                ////    //liste des numéros de pages à marquer dans le modèle
+                ////    List<int> pagesList = GetModelPages2Overlay(n);
 
-                    int i = 1;
-                    while (i <= n)
-                    {
-                        //S'assurer que la taille de la nouvelle page correspond à celle du document d'origine
-                        inputDoc.SetPageSize(reader.GetPageSizeWithRotation(i));
-                        inputDoc.NewPage();
+                ////    int i = 1;
+                ////    while (i <= n)
+                ////    {
+                ////        //S'assurer que la taille de la nouvelle page correspond à celle du document d'origine
+                ////        inputDoc.SetPageSize(reader.GetPageSizeWithRotation(i));
+                ////        inputDoc.NewPage();
 
-                        PdfImportedPage page = outputWriter.GetImportedPage(reader, i);
+                ////        PdfImportedPage page = outputWriter.GetImportedPage(reader, i);
                         
-                        int rotation = reader.GetPageRotation(i);
+                ////        int rotation = reader.GetPageRotation(i);
 
-                        //Ajout de la page PDF originale avec la bonne rotation
-                        if (rotation == 90 || rotation == 270)
-                        {
-                            cb1.AddTemplate(page, 0, -1f, 1f, 0, 0,
-                                reader.GetPageSizeWithRotation(i).Height);
-                        }
-                        else
-                        {
-                            //cb1.AddTemplate(page, 1f, 0, 0, 1f, 0, 0);
-                            cb1.AddTemplate(page, 0, 0, true);
-                        }
+                ////        //Ajout de la page PDF originale avec la bonne rotation
+                ////        if (rotation == 90 || rotation == 270)
+                ////        {
+                ////            cb1.AddTemplate(page, 0, -1f, 1f, 0, 0,
+                ////                reader.GetPageSizeWithRotation(i).Height);
+                ////        }
+                ////        else
+                ////        {
+                ////            //cb1.AddTemplate(page, 1f, 0, 0, 1f, 0, 0);
+                ////            cb1.AddTemplate(page, 0, 0, true);
+                ////        }
 
-                        //si la page en cours est à marquer
-                        if (pagesList.Contains(i))
-                        {
-                            //Ajout de la superposition avec la bonne rotation
-                            if (overlayRotation == 90 || overlayRotation == 270)
-                            {
-                                cb1.AddTemplate(overLay, 0, -1f, 1f, 0, 0,
-                                    reader.GetPageSizeWithRotation(i).Height);
-                            }
-                            else
-                            {
-                                //cb1.AddTemplate(overLay, 1f, 0, 0, 1f, 0, 0);
-                                cb1.AddTemplate(overLay, float.Parse(ServiceCfg.OverlayX.ToString()), float.Parse(ServiceCfg.OverlayY.ToString()), true);
-                            }
+                ////        //si la page en cours est à marquer
+                ////        if (pagesList.Contains(i))
+                ////        {
+                ////            //Ajout de la superposition avec la bonne rotation
+                ////            if (overlayRotation == 90 || overlayRotation == 270)
+                ////            {
+                ////                cb1.AddTemplate(overLay, 0, -1f, 1f, 0, 0,
+                ////                    reader.GetPageSizeWithRotation(i).Height);
+                ////            }
+                ////            else
+                ////            {
+                ////                //cb1.AddTemplate(overLay, 1f, 0, 0, 1f, 0, 0);
+                ////                cb1.AddTemplate(overLay, float.Parse(ServiceCfg.OverlayX.ToString()), float.Parse(ServiceCfg.OverlayY.ToString()), true);
+                ////            }
 
-                        }
-                        //Increment de page
-                        i++;
-                    }
-                    //Fermeture du fichier d'entrée
-                    inputDoc.Close();
-                    //on garde le fichier de sortie
-                    _lastPdf = outFile;
-                    //Fermeture du reader pour le fichier de superposition
-                    overlayReader.Close();
-                }
+                ////        }
+                ////        //Increment de page
+                ////        i++;
+                ////    }
+                ////    //Fermeture du fichier d'entrée
+                ////    inputDoc.Close();
+                ////    //on garde le fichier de sortie
+                ////    _lastPdf = outFile;
+                ////    //Fermeture du reader pour le fichier de superposition
+                ////    overlayReader.Close();
+                ////}
                 
-                reader.Close();
+                ////reader.Close();
                 //tout est traité dans cette phase on garde le fichier obtenu
                 DataManager.SetDicoValue(LogTableParam.Intermediaire, _lastPdf);
             }
@@ -334,6 +467,94 @@ namespace CarteTPLibrary
             }
             return isOk;
         }
+
+        private static bool Overlay(dynamic overlay, string filename)
+        {
+            string inputFile = ServiceCfg.PdfModel;
+            string cardFolder = Path.Combine(ServiceCfg.OutputFolderPath, @"pages\");
+            if (!PdfManager.CheckFolder(cardFolder, true))
+                return false;
+            string outFile = Path.Combine(cardFolder, "CTP_" + filename);
+
+            //Creation du reader et du document pour lire le document PDF original
+            PdfReader reader = new PdfReader(inputFile);
+            Document inputDoc = new Document(reader.GetPageSizeWithRotation(1));
+
+            using (FileStream fs = new FileStream(outFile, FileMode.Create))
+            {
+
+                //Creation du PDF Writer pour créer le nouveau Document PDF
+                PdfWriter outputWriter = PdfWriter.GetInstance(inputDoc, fs);
+                inputDoc.Open();
+                //Creation du Content Byte pour tamponner le PDF writer
+                PdfContentByte cb1 = outputWriter.DirectContent;
+
+                //Obtien le document PDF à utiliser comme superposition
+                PdfReader overlayReader = new PdfReader(overlay);
+                PdfImportedPage overLay = outputWriter.GetImportedPage(overlayReader, 1);
+
+                //Obtention de la rotation de page de superposition
+                int overlayRotation = overlayReader.GetPageRotation(1);
+
+                int n = reader.NumberOfPages;
+
+                //liste des numéros de pages à marquer dans le modèle
+                List<int> pagesList = GetModelPages2Overlay(n);
+
+                int i = 1;
+                while (i <= n)
+                {
+                    //S'assurer que la taille de la nouvelle page correspond à celle du document d'origine
+                    inputDoc.SetPageSize(reader.GetPageSizeWithRotation(i));
+                    inputDoc.NewPage();
+
+                    PdfImportedPage page = outputWriter.GetImportedPage(reader, i);
+
+                    int rotation = reader.GetPageRotation(i);
+
+                    //Ajout de la page PDF originale avec la bonne rotation
+                    if (rotation == 90 || rotation == 270)
+                    {
+                        cb1.AddTemplate(page, 0, -1f, 1f, 0, 0,
+                            reader.GetPageSizeWithRotation(i).Height);
+                    }
+                    else
+                    {
+                        //cb1.AddTemplate(page, 1f, 0, 0, 1f, 0, 0);
+                        cb1.AddTemplate(page, 0, 0, true);
+                    }
+
+                    //si la page en cours est à marquer
+                    if (pagesList.Contains(i))
+                    {
+                        //Ajout de la superposition avec la bonne rotation
+                        if (overlayRotation == 90 || overlayRotation == 270)
+                        {
+                            cb1.AddTemplate(overLay, 0, -1f, 1f, 0, 0,
+                                reader.GetPageSizeWithRotation(i).Height);
+                        }
+                        else
+                        {
+                            //cb1.AddTemplate(overLay, 1f, 0, 0, 1f, 0, 0);
+                            cb1.AddTemplate(overLay, float.Parse(ServiceCfg.OverlayX.ToString()), float.Parse(ServiceCfg.OverlayY.ToString()), true);
+                        }
+
+                    }
+                    //Increment de page
+                    i++;
+                }
+                //Fermeture du fichier d'entrée
+                inputDoc.Close();
+                //on garde le fichier de sortie
+                _lastPdf = outFile;
+                //Fermeture du reader pour le fichier de superposition
+                overlayReader.Close();
+            }
+
+            reader.Close();
+            return true;
+        }
+
 
         /// <summary>
         /// obtien la liste des pages à fusionner dans le modèle
@@ -418,10 +639,24 @@ namespace CarteTPLibrary
                 var pathbckup = Path.Combine(ServiceCfg.OutputFolderPath, "erreur\\");
                 if (CheckFolder(pathbckup, true))
                 {
-                    if (File.Exists(file))
+                    if (!string.IsNullOrEmpty(file) && File.Exists(file))
                     {
-                        File.Move(file, Path.Combine(pathbckup, Path.GetFileName(file)));
-                        return Path.Combine(pathbckup, Path.GetFileName(file));
+                        var cut = Path.GetFileNameWithoutExtension(file).Split('(');
+
+                        var errorfile = cut.Count() > 1 ? cut.First() : Path.GetFileNameWithoutExtension(file);
+                        var list = Directory.EnumerateFiles(pathbckup, $"{errorfile}*");
+                        
+                        if (list.Any())
+                        {
+                            errorfile = $"{errorfile}({list.Count()}).pdf";
+                        }
+                        else
+                        {
+                            errorfile = Path.GetFileName(file);
+                        }
+
+                        File.Move(file, Path.Combine(pathbckup, errorfile));
+                        return Path.Combine(pathbckup, errorfile);
                     }
                 }
             }
